@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // const BASE_URL = "http://localhost:5001/api";
-const BASE_URL = "https://udapay.onrender.com/api"
+const BASE_URL = "https://udap.onrender.com/api"
 
 
 const apiClient = axios.create({
