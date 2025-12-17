@@ -72,6 +72,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/dukan", dukanRoutes);
 app.use("/api/customer", customerRoutes);
