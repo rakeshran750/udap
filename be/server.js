@@ -4,12 +4,7 @@ import connectDB from "./config/db.js";
 import seedCustomers from "./seeds/seedCustomers.js";
 dotenv.config();
 
-
 const PORT = process.env.PORT || 5000;
-
-
-
-
 
 // //DB connection and server start
 connectDB()

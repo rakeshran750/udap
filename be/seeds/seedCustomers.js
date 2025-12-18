@@ -7,8 +7,6 @@ dotenv.config();
 
 const seedCustomers = async () => {
   try {
-    // Connect DB
-    await mongoose.connect(process.env.MONGO_URI);
 
     // Find or create dukan
     let dukan = await Dukan.findOne({ phone: "9625296634" });
