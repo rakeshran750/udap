@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-orange-50 via-white to-orange-50;
+    @apply font-sans;
+    @apply min-h-screen;
+    /* Safe area insets for notched devices */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Prevent pull-to-refresh on PWA */
+  body.pwa-standalone {
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-orange-50;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-orange-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-orange-400;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-orange-100;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold;
+    @apply transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:shadow-lg;
+    @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-orange-100 text-orange-700 px-6 py-3 rounded-xl font-semibold;
+    @apply transition-all duration-200 hover:bg-orange-200 hover:shadow-md;
+    @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2;
+  }
+  
+  .input-modern {
+    @apply w-full px-4 py-3 rounded-xl border border-orange-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent;
+    @apply transition-all duration-200 bg-white;
+    @apply placeholder:text-gray-400;
+  }
+  
+  .card-modern {
+    @apply bg-white rounded-2xl shadow-soft p-6 border border-orange-100;
+    @apply transition-all duration-300 hover:shadow-lg;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  /* PWA Install Banner */
+  .pwa-install-banner {
+    @apply fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80;
+    @apply bg-white rounded-2xl shadow-2xl p-4 z-50 border border-orange-100;
+  }
+
+  /* Touch-friendly sizing */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text selection on buttons */
+  button, a {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Smooth transitions for theme */
+  * {
+    transition-property: background-color, border-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: ease-in-out;
+  }
+
+  /* Fix for iOS input zoom */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
