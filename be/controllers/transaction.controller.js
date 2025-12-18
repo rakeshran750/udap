@@ -63,3 +63,88 @@ export const getTransactionsByCustomer = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Get dashboard stats with date filter
+export const getDashboardStats = async (req, res) => {
+  try {
+    const { dukanId } = req.params;
+    const { days } = req.query; // 7, 15, 30
+
+    const daysNum = parseInt(days) || 7;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysNum);
+    startDate.setHours(0, 0, 0, 0);
+
+    // Get transactions within date range
+    const transactions = await Transaction.find({
+      dukanId,
+      createdAt: { $gte: startDate }
+    });
+
+    // Calculate totals and track unique customers
+    let totalUdhari = 0;
+    let totalCollection = 0;
+    const customerIds = new Set();
+    const newCustomerIds = new Set();
+
+    transactions.forEach(txn => {
+      if (txn.type === 'UDHARI') {
+        totalUdhari += txn.amount;
+      } else if (txn.type === 'PAID') {
+        totalCollection += txn.amount;
+      }
+      if (txn.customerId) {
+        customerIds.add(txn.customerId.toString());
+      }
+    });
+
+    // Find customers who had their first transaction in this period
+    for (const customerId of customerIds) {
+      const firstTxn = await Transaction.findOne({ 
+        customerId, 
+        dukanId 
+      }).sort({ createdAt: 1 });
+      
+      if (firstTxn && firstTxn.createdAt >= startDate) {
+        newCustomerIds.add(customerId);
+      }
+    }
+
+    const newCustomers = newCustomerIds.size;
+    const repeatCustomers = customerIds.size - newCustomers;
+
+    // Get total pending balance (all time)
+    const balanceResult = await Transaction.aggregate([
+      { $match: { dukanId: dukanId } },
+      {
+        $group: {
+          _id: null,
+          totalBalance: {
+            $sum: {
+              $cond: [
+                { $eq: ["$type", "UDHARI"] },
+                "$amount",
+                { $multiply: ["$amount", -1] },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalBalance: balanceResult[0]?.totalBalance || 0,
+        totalUdhari,
+        totalCollection,
+        transactionCount: transactions.length,
+        newCustomers,
+        repeatCustomers,
+        days: daysNum
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
