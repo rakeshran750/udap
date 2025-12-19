@@ -16,7 +16,6 @@ export const sendEmail = async ({
     };
     
     await mailTransporter.sendMail(mailOptions);
-
   } catch (error) {
     console.error("❌ Email sending failed:", error.message);
     throw error;

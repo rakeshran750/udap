@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import { generateToken } from '../config/jwtConfig.js';
+import {getOTPEmailTemplate } from '../utils/templateProvider.js'
+
 
 const generateOTP = () =>Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -26,11 +28,21 @@ export const sendSignupOtp = async (req, res) => {
       { upsert: true, new: true }
     );
 
+
+    const emailTpl = getOTPEmailTemplate({ otp });
+
+    // await sendEmail({
+    //   to: email,
+    //   subject: 'Signup OTP',
+    //   text: `Your OTP is ${otp}`,
+    //   html: `<h3>Your OTP is ${otp}</h3><p>Valid for 10 minutes</p>`
+    // });
+
     await sendEmail({
       to: email,
-      subject: 'Signup OTP',
-      text: `Your OTP is ${otp}`,
-      html: `<h3>Your OTP is ${otp}</h3><p>Valid for 10 minutes</p>`
+      subject: emailTpl.subject,
+      text: emailTpl.text,
+      html: emailTpl.html,
     });
 
     res.json({ message: 'OTP sent to email' });

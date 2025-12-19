@@ -1,4 +1,6 @@
-const nodemailer = require('nodemailer');
+import nodemailer from "nodemailer"
+import dotenv from "dotenv";
+dotenv.config();
 
 const mailTransporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST || 'smtp.gmail.com',
@@ -19,4 +21,4 @@ mailTransporter.verify((error, success) => {
   }
 });
 
-module.exports = mailTransporter;
+export default mailTransporter
