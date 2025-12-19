@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Customer from "../models/Customer.js";
-import Dukan from "../models/Dukan.js";
+import Dukan from "../models/dukan.model.js";
 
 dotenv.config();
 
