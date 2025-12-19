@@ -110,6 +110,10 @@ export default function Landing() {
   const t = content[lang];
 
   const handleGetStarted = () => {
+    navigate('/register');
+  };
+
+  const handleLogin = () => {
     navigate('/login');
   };
 
@@ -175,12 +179,20 @@ export default function Landing() {
             </button>
           </div>
 
-          <button
-            onClick={handleGetStarted}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-full font-medium transition-all hover:shadow-lg"
-          >
-            {t.getStarted}
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleLogin}
+              className="bg-white hover:bg-gray-50 text-orange-600 border-2 border-orange-500 px-5 sm:px-6 py-2 sm:py-2.5 rounded-full font-medium transition-all hover:shadow-lg text-sm sm:text-base"
+            >
+              Login
+            </button>
+            <button
+              onClick={handleGetStarted}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-full font-medium transition-all hover:shadow-lg text-sm sm:text-base"
+            >
+              {t.getStarted}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu Button */}
@@ -239,12 +251,20 @@ export default function Landing() {
                 हिंदी
               </button>
             </div>
-            <button
-              onClick={handleGetStarted}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-medium"
-            >
-              {t.getStarted}
-            </button>
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={handleLogin}
+                className="w-full bg-white hover:bg-gray-50 text-orange-600 border-2 border-orange-500 px-6 py-3 rounded-full font-medium"
+              >
+                Login
+              </button>
+              <button
+                onClick={handleGetStarted}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-medium"
+              >
+                {t.getStarted}
+              </button>
+            </div>
           </div>
         )}
       </nav>

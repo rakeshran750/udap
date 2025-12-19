@@ -113,6 +113,17 @@
     min-width: 44px;
   }
 
+  /* Responsive improvements */
+  @media (max-width: 640px) {
+    .card-modern {
+      @apply p-4;
+    }
+    
+    .input-modern {
+      @apply text-base;
+    }
+  }
+
   /* Prevent text selection on buttons */
   button, a {
     -webkit-user-select: none;

@@ -10,9 +10,17 @@ export default function Customers() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [stats, setStats] = useState({ total: 0, withBalance: 0, totalBalance: 0 });
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    address: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchData = async () => {
     const dukanId = localStorage.getItem("dukanId");
     
     if (!dukanId) {
@@ -24,40 +32,41 @@ export default function Customers() {
     setLoading(true);
     setError("");
 
-    api.getCustomers(dukanId)
-      .then((data) => {
-        setCustomers(data);
-        setFilteredCustomers(data);
+    try {
+      const data = await api.getCustomers(dukanId);
+      setCustomers(data);
+      setFilteredCustomers(data);
 
-        // Fetch balances for all customers
-        const balancePromises = data.map((c) =>
-          api.getBalance(c._id).then((r) => ({ id: c._id, balance: r.balance }))
-        );
+      // Fetch balances for all customers
+      const balancePromises = data.map((c) =>
+        api.getBalance(c._id).then((r) => ({ id: c._id, balance: r.balance }))
+      );
 
-        Promise.all(balancePromises).then((balanceResults) => {
-          const balanceMap = {};
-          let totalBalance = 0;
-          let withBalance = 0;
-          
-          balanceResults.forEach(({ id, balance }) => {
-            balanceMap[id] = balance;
-            if (balance > 0) {
-              totalBalance += balance;
-              withBalance++;
-            }
-          });
-          
-          setBalances(balanceMap);
-          setStats({ total: data.length, withBalance, totalBalance });
-        });
-      })
-      .catch((err) => {
-        setError("Failed to load customers. Please try again.");
-        console.error("Error loading customers:", err);
-      })
-      .finally(() => {
-        setLoading(false);
+      const balanceResults = await Promise.all(balancePromises);
+      const balanceMap = {};
+      let totalBalance = 0;
+      let withBalance = 0;
+      
+      balanceResults.forEach(({ id, balance }) => {
+        balanceMap[id] = balance;
+        if (balance > 0) {
+          totalBalance += balance;
+          withBalance++;
+        }
       });
+      
+      setBalances(balanceMap);
+      setStats({ total: data.length, withBalance, totalBalance });
+    } catch (err) {
+      setError("Failed to load customers. Please try again.");
+      console.error("Error loading customers:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   // Filter customers based on search
@@ -79,12 +88,67 @@ export default function Customers() {
     navigate(`/customers/${customer._id}`);
   };
 
+  const handleCreateCustomer = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.name || formData.name.trim() === "") {
+      setFormError("Please enter customer name");
+      return;
+    }
+
+    const dukanId = localStorage.getItem("dukanId");
+    if (!dukanId) {
+      setFormError("Please login to create customers");
+      return;
+    }
+
+    setFormError("");
+    setSubmitting(true);
+
+    try {
+      await api.createCustomer({
+        dukanId,
+        name: formData.name.trim(),
+        phone: formData.phone.replace(/\D/g, "") || undefined,
+        address: formData.address.trim() || undefined,
+      });
+
+      // Reset form
+      setFormData({
+        name: "",
+        phone: "",
+        address: "",
+      });
+      setShowCreateForm(false);
+      
+      // Refresh customers
+      await fetchData();
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || "Failed to create customer. Please try again.";
+      setFormError(errorMessage);
+      console.error("Create customer error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 animate-fade-in">
       {/* Header */}
-      <div className="mb-6 animate-slide-down">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Customers</h2>
-        <p className="text-gray-600">Manage customer transactions and balances</p>
+      <div className="mb-6 animate-slide-down flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Customers</h2>
+          <p className="text-gray-600">Manage customer transactions and balances</p>
+        </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="btn-primary flex items-center space-x-2 touch-target"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create Customer</span>
+        </button>
       </div>
 
       {/* Stats Card */}
@@ -152,6 +216,124 @@ export default function Customers() {
             </svg>
           </div>
           <p className="text-gray-500">{searchQuery ? 'No customers found' : 'No customers yet'}</p>
+        </div>
+      )}
+
+      {/* Create Customer Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-scale-in">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Create Customer</h3>
+                <button
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setFormError("");
+                    setFormData({ name: "", phone: "", address: "" });
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {formError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-sm font-semibold text-red-700">{formError}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleCreateCustomer} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Customer Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter customer name"
+                    className="input-modern"
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      setFormError("");
+                    }}
+                    disabled={submitting}
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                      <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <span className="text-gray-500 font-medium">+91</span>
+                    </div>
+                    <input
+                      type="tel"
+                      placeholder="Enter 10-digit mobile number (optional)"
+                      className="input-modern pl-20"
+                      value={formData.phone}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setFormData({ ...formData, phone: value });
+                        setFormError("");
+                      }}
+                      disabled={submitting}
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Enter customer address (optional)"
+                    className="input-modern resize-none"
+                    value={formData.address}
+                    onChange={(e) => {
+                      setFormData({ ...formData, address: e.target.value });
+                      setFormError("");
+                    }}
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="btn-primary flex-1 touch-target disabled:opacity-50"
+                  >
+                    {submitting ? "Creating..." : "Create Customer"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setFormError("");
+                      setFormData({ name: "", phone: "", address: "" });
+                    }}
+                    className="btn-secondary px-6 touch-target"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
 

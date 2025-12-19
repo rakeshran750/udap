@@ -19,6 +19,7 @@ export default function Dashboard() {
     
     if (!dukanId) {
       setLoading(false);
+      // User has no shop, show empty state
       return;
     }
 
@@ -77,6 +78,40 @@ export default function Dashboard() {
   };
 
   const chartData = getChartData();
+
+  const dukanId = localStorage.getItem("dukanId");
+
+  // Show empty state if no shop
+  if (!dukanId) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 animate-fade-in">
+        <div className="mb-6 animate-slide-down">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Dashboard</h2>
+          <p className="text-gray-600">Your business overview</p>
+        </div>
+        <div className="card-modern text-center py-12 animate-slide-up">
+          <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-glow">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No Shop Added Yet</h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Add your first shop to start managing customers and transactions. You can add a shop from the Account section.
+          </p>
+          <a
+            href="/account"
+            className="btn-primary inline-flex items-center space-x-2"
+          >
+            <span>Go to Account</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 animate-fade-in">

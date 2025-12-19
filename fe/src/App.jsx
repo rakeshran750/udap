@@ -8,6 +8,10 @@ import CustomerDetail from "./pages/CustomerDetail";
 import Account from "./pages/Account";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import VerifyOtp from "./pages/VerifyOtp";
+import CompleteSignup from "./pages/CompleteSignup";
+import AddShop from "./pages/AddShop";
 
 function ProtectedRoute({ children, isAuthenticated }) {
   if (!isAuthenticated) {
@@ -55,15 +59,19 @@ export default function App() {
       });
     }
 
-    // Check if user is already logged in
+    // Check if user is already logged in (using token)
+    const token = localStorage.getItem("token");
     const dukanId = localStorage.getItem("dukanId");
-    if (dukanId) {
+    
+    if (token) {
       setIsAuthenticated(true);
-      setDukanInfo({
-        _id: dukanId,
-        name: localStorage.getItem("dukanName") || "",
-        phone: localStorage.getItem("dukanPhone") || "",
-      });
+      if (dukanId) {
+        setDukanInfo({
+          _id: dukanId,
+          name: localStorage.getItem("dukanName") || "",
+          phone: localStorage.getItem("dukanPhone") || "",
+        });
+      }
     }
 
     // Listen for login events
@@ -85,11 +93,15 @@ export default function App() {
 
   const handleLoginSuccess = (dukan) => {
     setIsAuthenticated(true);
-    setDukanInfo(dukan);
+    if (dukan) {
+      setDukanInfo(dukan);
+    }
     navigate('/dashboard');
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     localStorage.removeItem("dukanId");
     localStorage.removeItem("dukanName");
     localStorage.removeItem("dukanPhone");
@@ -103,6 +115,26 @@ export default function App() {
       <Route 
         path="/" 
         element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />} 
+      />
+      <Route 
+        path="/register" 
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} 
+      />
+      <Route 
+        path="/verify-otp" 
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <VerifyOtp />} 
+      />
+      <Route 
+        path="/complete-signup" 
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <CompleteSignup />} 
+      />
+      <Route 
+        path="/add-shop" 
+        element={
+          <ProtectedRoute isAuthenticated={!!localStorage.getItem("token")}>
+            <AddShop />
+          </ProtectedRoute>
+        } 
       />
       <Route 
         path="/login" 

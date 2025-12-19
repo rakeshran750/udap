@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://udap.onrender.com/api";
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -10,7 +9,19 @@ const apiClient = axios.create({
   },
 });
 
-// Optional: global error handling
+// Add token to requests if available
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Global error handling
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
@@ -20,35 +31,59 @@ apiClient.interceptors.response.use(
 );
 
 export const api = {
-  // Find dukan by phone (login)
+  // Auth endpoints
+  sendSignupOtp: (email) =>
+    apiClient.post("/auth/signup/send-otp", { email }),
+
+  verifySignupOtp: (email, otp) =>
+    apiClient.post("/auth/signup/verify-otp", { email, otp }),
+
+  completeSignup: (email, name, phone, password) =>
+    apiClient.post("/auth/signup/complete", { email, name, phone, password }),
+
+  login: (email, password) =>
+    apiClient.post("/auth/login", { email, password }),
+
+  // Shop (Dukan) endpoints
+  createDukan: (data) =>
+    apiClient.post("/dukan", data),
+
+  getAllDukans: () =>
+    apiClient.get("/dukan"),
+
+  getDukanById: (id) =>
+    apiClient.get(`/dukan/${id}`),
+
+  updateDukan: (id, data) =>
+    apiClient.put(`/dukan/${id}`, data),
+
+  deleteDukan: (id) =>
+    apiClient.delete(`/dukan/${id}`),
+
+  // Legacy endpoints (for backward compatibility)
   findDukanByPhone: (phone) =>
     apiClient.get(`/dukan/phone/${phone}`),
 
-  // Create customer
+  // Customer endpoints
   createCustomer: (data) =>
     apiClient.post("/customer", data),
 
-  // Get customers by dukan
   getCustomers: (dukanId) =>
     apiClient.get(`/customer/${dukanId}`),
 
-  // Add udhari / paid transaction
+  // Transaction endpoints
   addTransaction: (data) =>
     apiClient.post("/transaction", data),
 
-  // Get customer balance
   getBalance: (customerId) =>
     apiClient.get(`/transaction/balance/${customerId}`),
 
-  // Get transactions by dukan
   getTransactionsByDukan: (dukanId) =>
     apiClient.get(`/transaction/dukan/${dukanId}`),
 
-  // Get transactions by customer
   getTransactionsByCustomer: (customerId) =>
     apiClient.get(`/transaction/customer/${customerId}`),
 
-  // Get dashboard stats with date filter
   getDashboardStats: (dukanId, days = 7) =>
     apiClient.get(`/transaction/stats/${dukanId}?days=${days}`),
 };

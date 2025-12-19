@@ -8,8 +8,17 @@ export default function Transactions() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [stats, setStats] = useState({ totalUdhari: 0, totalCollection: 0, count: 0 });
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [formData, setFormData] = useState({
+    customerId: "",
+    amount: "",
+    type: "UDHARI",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
 
-  useEffect(() => {
+  const fetchData = async () => {
     const dukanId = localStorage.getItem("dukanId");
     
     if (!dukanId) {
@@ -21,27 +30,34 @@ export default function Transactions() {
     setLoading(true);
     setError("");
 
-    api.getTransactionsByDukan(dukanId)
-      .then((data) => {
-        setTransactions(data);
-        setFilteredTransactions(data);
-        
-        // Calculate stats
-        let totalUdhari = 0;
-        let totalCollection = 0;
-        data.forEach(txn => {
-          if (txn.type === 'UDHARI') totalUdhari += txn.amount;
-          else totalCollection += txn.amount;
-        });
-        setStats({ totalUdhari, totalCollection, count: data.length });
-      })
-      .catch((err) => {
-        setError("Failed to load transactions. Please try again.");
-        console.error("Error loading transactions:", err);
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const [transactionsData, customersData] = await Promise.all([
+        api.getTransactionsByDukan(dukanId),
+        api.getCustomers(dukanId)
+      ]);
+
+      setTransactions(transactionsData);
+      setFilteredTransactions(transactionsData);
+      setCustomers(customersData || []);
+      
+      // Calculate stats
+      let totalUdhari = 0;
+      let totalCollection = 0;
+      transactionsData.forEach(txn => {
+        if (txn.type === 'UDHARI') totalUdhari += txn.amount;
+        else totalCollection += txn.amount;
       });
+      setStats({ totalUdhari, totalCollection, count: transactionsData.length });
+    } catch (err) {
+      setError("Failed to load transactions. Please try again.");
+      console.error("Error loading transactions:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   // Filter transactions based on search
@@ -75,12 +91,72 @@ export default function Transactions() {
     });
   };
 
+  const handleCreateTransaction = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.customerId) {
+      setFormError("Please select a customer");
+      return;
+    }
+
+    if (!formData.amount || Number(formData.amount) <= 0) {
+      setFormError("Please enter a valid amount");
+      return;
+    }
+
+    const dukanId = localStorage.getItem("dukanId");
+    if (!dukanId) {
+      setFormError("Please login to create transactions");
+      return;
+    }
+
+    setFormError("");
+    setSubmitting(true);
+
+    try {
+      await api.addTransaction({
+        dukanId,
+        customerId: formData.customerId,
+        amount: Number(formData.amount),
+        type: formData.type,
+      });
+
+      // Reset form
+      setFormData({
+        customerId: "",
+        amount: "",
+        type: "UDHARI",
+      });
+      setShowCreateForm(false);
+      
+      // Refresh transactions
+      await fetchData();
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || "Failed to create transaction. Please try again.";
+      setFormError(errorMessage);
+      console.error("Create transaction error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 animate-fade-in">
       {/* Header */}
-      <div className="mb-6 animate-slide-down">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Transactions</h2>
-        <p className="text-gray-600">View all your transaction history</p>
+      <div className="mb-6 animate-slide-down flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Transactions</h2>
+          <p className="text-gray-600">View all your transaction history</p>
+        </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="btn-primary flex items-center space-x-2 touch-target"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create Transaction</span>
+        </button>
       </div>
 
       {/* Stats Card */}
@@ -148,6 +224,157 @@ export default function Transactions() {
             </svg>
           </div>
           <p className="text-gray-500">{searchQuery ? 'No transactions found' : 'No transactions yet'}</p>
+        </div>
+      )}
+
+      {/* Create Transaction Modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-scale-in">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Create Transaction</h3>
+                <button
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setFormError("");
+                    setFormData({ customerId: "", amount: "", type: "UDHARI" });
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {formError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-sm font-semibold text-red-700">{formError}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleCreateTransaction} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Customer <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.customerId}
+                    onChange={(e) => {
+                      setFormData({ ...formData, customerId: e.target.value });
+                      setFormError("");
+                    }}
+                    className="input-modern"
+                    required
+                    disabled={submitting}
+                  >
+                    <option value="">Select a customer</option>
+                    {customers.map((customer) => (
+                      <option key={customer._id} value={customer._id}>
+                        {customer.name} {customer.phone ? `(${customer.phone})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {customers.length === 0 && (
+                    <p className="mt-2 text-xs text-gray-500">
+                      No customers found. <a href="/customers" className="text-orange-600 hover:underline">Create one</a>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Amount (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      placeholder="Enter amount"
+                      className="input-modern pl-10"
+                      value={formData.amount}
+                      onChange={(e) => {
+                        setFormData({ ...formData, amount: e.target.value });
+                        setFormError("");
+                      }}
+                      disabled={submitting}
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Transaction Type <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type: "UDHARI" })}
+                      className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 border-2 ${
+                        formData.type === "UDHARI"
+                          ? "bg-red-50 border-red-500 text-red-700 shadow-md"
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                      }`}
+                      disabled={submitting}
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Udhari</span>
+                      </div>
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type: "PAID" })}
+                      className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 border-2 ${
+                        formData.type === "PAID"
+                          ? "bg-green-50 border-green-500 text-green-700 shadow-md"
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+                      }`}
+                      disabled={submitting}
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Paid</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="btn-primary flex-1 touch-target disabled:opacity-50"
+                  >
+                    {submitting ? "Creating..." : "Create Transaction"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setFormError("");
+                      setFormData({ customerId: "", amount: "", type: "UDHARI" });
+                    }}
+                    className="btn-secondary px-6 touch-target"
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
 
