@@ -2,7 +2,11 @@
   "name": "Udhari Khata - उधारी खाता",
   "short_name": "Udhari Khata",
   "description": "Digital Udhari management for Indian shop owners - डिजिटल उधारी प्रबंधन",
+<<<<<<< HEAD
   "theme_color": "#fff7ed",
+=======
+    "theme_color": "#fff7ed",
+>>>>>>> 8211dafe71e151c50fbc512d87bf90dfe7ec2cd4
   "background_color": "#fff7ed",
   "display": "standalone",
   "orientation": "portrait",
