@@ -4,6 +4,7 @@ import { api } from "../api/api";
 import MockRevenueChart from "../components/MockRevenueChart";
 import SimpleLineChart from "../components/SimpleLineChart";
 import StatSummaryCard from "../components/StatSummaryCard";
+import MobileDashboard from "./MobileDashboard";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -12,6 +13,7 @@ export default function Dashboard() {
   });
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -71,6 +73,14 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   // Calculate chart data (last 7 days)
   const getChartData = () => {
     const period = stats.periods[0] || { udhari: 0, collection: 0 };
@@ -89,6 +99,10 @@ export default function Dashboard() {
     { label: "Udhari", value: `₹${chartData.udhari.toLocaleString('en-IN')}`, color: "red", textColor: "#dc2626" },
     { label: "Collection", value: `₹${chartData.collection.toLocaleString('en-IN')}`, color: "green", textColor: "#15803d" },
   ];
+
+  if (isMobile) {
+    return <MobileDashboard />;
+  }
 
   // Show empty state if no shop
   if (!dukanId) {
@@ -153,7 +167,54 @@ export default function Dashboard() {
         </div>
 
         <div className="card-modern col-span-2">
-
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900">Recent Transactions</h3>
+            <Link to="/transactions" className="text-sm text-orange-600 hover:text-orange-700 font-semibold">
+              View all
+            </Link>
+          </div>
+          {loading ? (
+            <div className="space-y-3">
+              {[1,2,3].map((i)=>(
+                <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse"></div>
+              ))}
+            </div>
+          ) : recentTransactions.length === 0 ? (
+            <p className="text-sm text-gray-500">No transactions yet</p>
+          ) : (
+            <div className="space-y-3">
+              {recentTransactions.slice(0,5).map((txn, idx) => (
+                <div key={txn._id || idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      txn.type === 'UDHARI' ? 'bg-red-100' : 'bg-green-100'
+                    }`}>
+                      {txn.type === 'UDHARI' ? (
+                        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-gray-900 truncate">{txn.customerId?.name || "Unknown"}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(txn.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} • {txn.customerId?.phone || 'No phone'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-sm font-bold ${txn.type === 'UDHARI' ? 'text-red-600' : 'text-green-600'}`}>
+                      {txn.type === 'UDHARI' ? '+' : '-'}ƒ,1{txn.amount.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

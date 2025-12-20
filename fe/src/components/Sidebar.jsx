@@ -100,22 +100,17 @@ export default function Sidebar({ dukanInfo, onLogout, expanded, setExpanded }) 
           ))}
         </nav>
 
-        {/* Logout Button */}
-        <div className="p-3 border-t border-orange-100">
-          <button
-            onClick={onLogout}
-            title={!expanded ? 'Logout' : ''}
-            className={`flex items-center space-x-3 w-full px-3 py-3 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200`}
-          >
-            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span className={`font-medium transition-all duration-300 ${
-              expanded ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
-            }`}>
-              Logout
-            </span>
-          </button>
+        {/* App version */}
+        <div className="mt-auto p-3 border-t border-orange-100">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <span className="text-white font-bold text-lg">UK</span>
+            </div>
+            <div className={`text-sm text-gray-600 transition-all duration-300 ${expanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+              <p className="font-semibold text-gray-800">Udhari Khata</p>
+              <p className="text-xs text-gray-500">v1.0.0</p>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -210,20 +205,17 @@ export default function Sidebar({ dukanInfo, onLogout, expanded, setExpanded }) 
               ))}
             </nav>
 
-            {/* Logout */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-100">
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  onLogout();
-                }}
-                className="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="font-medium">Logout</span>
-              </button>
+            {/* Mobile version block */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-100 bg-white">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-lg">UK</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">Udhari Khata</p>
+                  <p className="text-xs text-gray-500">v1.0.0</p>
+                </div>
+              </div>
             </div>
           </div>
         </>

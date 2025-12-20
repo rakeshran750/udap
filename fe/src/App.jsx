@@ -13,6 +13,7 @@ import VerifyOtp from "./pages/VerifyOtp";
 import CompleteSignup from "./pages/CompleteSignup";
 import AddShop from "./pages/AddShop";
 import Breadcrumbs from "./components/Breadcrumbs";
+import BannerSlider from "./components/BannerSlider";
 
 function ProtectedRoute({ children, isAuthenticated }) {
   if (!isAuthenticated) {
@@ -83,8 +84,8 @@ function AppLayout({ dukanInfo, onLogout, sidebarExpanded, setSidebarExpanded, c
         sidebarExpanded ? 'md:ml-64' : 'md:ml-20'
       }`}>
         <div
-          className="sticky top-0 z-30 h-16 border-b border-orange-100/60"
-          style={{ background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fff7ed 100%)", paddingTop: "env(safe-area-inset-top)" }}
+          className="sticky top-0 z-30 h-16 border-b border-orange-100/60 bg-white"
+          style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="flex items-center justify-between h-full px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-2">
@@ -162,10 +163,11 @@ function AppLayout({ dukanInfo, onLogout, sidebarExpanded, setSidebarExpanded, c
             </div>
           </div>
         </div>
-        <div className="px-4 sm:px-6 lg:px-8 pt-3">
+        <div className="px-4 sm:px-6 lg:px-8 pt-3 space-y-2">
           <Breadcrumbs key={location.pathname} />
         </div>
-        <div className="pt-2 px-4 sm:px-6 lg:px-8">
+        <div className="pt-2 px-4 sm:px-6 lg:px-4 space-y-3">
+          <BannerSlider />
           {children}
         </div>
       </main>
