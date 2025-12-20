@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/api";
+import StatSummaryCard from "../components/StatSummaryCard";
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -69,6 +70,12 @@ export default function Customers() {
     fetchData();
   }, []);
 
+  const metrics = [
+    { label: "Total", value: stats.total.toLocaleString('en-IN'), color: "orange", textColor: "#0f172a" },
+    { label: "With Balance", value: stats.withBalance.toLocaleString('en-IN'), color: "red", textColor: "#dc2626" },
+    { label: "Total Due", value: `₹${stats.totalBalance.toLocaleString('en-IN')}`, color: "green", textColor: "#15803d" },
+  ];
+
   // Filter customers based on search
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -85,7 +92,7 @@ export default function Customers() {
   }, [searchQuery, customers]);
 
   const handleCustomerClick = (customer) => {
-    navigate(`/customers/${customer._id}`);
+    navigate(`/customers/${customer._id}`, { state: { customer } });
   };
 
   const handleCreateCustomer = async (e) => {
@@ -134,37 +141,15 @@ export default function Customers() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 animate-fade-in">
+     
       {/* Header */}
-      <div className="mb-6 animate-slide-down flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Customers</h2>
-          <p className="text-gray-600">Manage customer transactions and balances</p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="btn-primary flex items-center space-x-2 touch-target"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Create Customer</span>
-        </button>
-      </div>
-
-      {/* Stats Card */}
-      <div className="grid grid-cols-3 gap-3 mb-6 animate-slide-up">
-        <div className="card-modern p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Total</p>
-          <p className="text-xl font-bold text-gray-900">{stats.total}</p>
-        </div>
-        <div className="card-modern p-4 text-center bg-orange-50 border-orange-100">
-          <p className="text-xs text-orange-600 mb-1">With Balance</p>
-          <p className="text-xl font-bold text-orange-600">{stats.withBalance}</p>
-        </div>
-        <div className="card-modern p-4 text-center bg-red-50 border-red-100">
-          <p className="text-xs text-red-600 mb-1">Total Due</p>
-          <p className="text-xl font-bold text-red-600">₹{stats.totalBalance.toLocaleString('en-IN')}</p>
-        </div>
+      <div className="mb-6">
+        <StatSummaryCard
+          title="Customers Overview"
+          ctaLabel="Create Customer"
+          onAdd={() => setShowCreateForm(true)}
+          metrics={metrics}
+        />
       </div>
 
       {/* Search Bar */}

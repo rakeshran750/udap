@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/api";
+import MockRevenueChart from "../components/MockRevenueChart";
+import SimpleLineChart from "../components/SimpleLineChart";
+import StatSummaryCard from "../components/StatSummaryCard";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -80,17 +83,19 @@ export default function Dashboard() {
   const chartData = getChartData();
 
   const dukanId = localStorage.getItem("dukanId");
+  const totalAmount = chartData.udhari + chartData.collection;
+  const metrics = [
+    { label: "Total", value: `₹${totalAmount.toLocaleString('en-IN')}`, color: "orange", textColor: "#0f172a" },
+    { label: "Udhari", value: `₹${chartData.udhari.toLocaleString('en-IN')}`, color: "red", textColor: "#dc2626" },
+    { label: "Collection", value: `₹${chartData.collection.toLocaleString('en-IN')}`, color: "green", textColor: "#15803d" },
+  ];
 
   // Show empty state if no shop
   if (!dukanId) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 animate-fade-in">
-        <div className="mb-6 animate-slide-down">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Dashboard</h2>
-          <p className="text-gray-600">Your business overview</p>
-        </div>
-        <div className="card-modern text-center py-12 animate-slide-up">
-          <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-glow">
+      <div className="card-modern text-center py-12 animate-slide-up">
+        <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-glow">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -115,11 +120,8 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 animate-fade-in">
-      {/* Header */}
-      <div className="mb-6 animate-slide-down">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Dashboard</h2>
-        <p className="text-gray-600">Your business overview</p>
-      </div>
+
+
 
       {/* Total Balance Card */}
       <div className="card-modern bg-gradient-to-r from-orange-500 to-red-500 mb-6 animate-slide-up">
@@ -142,202 +144,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Period Stats - Horizontal Scroll */}
-      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory mb-6 animate-slide-up">
-        {stats.periods.map((period, index) => (
-          <div 
-            key={index} 
-            className="card-modern min-w-[260px] flex-shrink-0 snap-start"
-          >
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-orange-100">
-              <span className="text-base font-bold text-gray-900">{period.label}</span>
-              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-red-50 rounded-lg p-2">
-                <p className="text-xs text-red-600 font-medium">Udhari</p>
-                {loading ? (
-                  <div className="h-5 w-14 bg-red-100 rounded animate-pulse mt-1" />
-                ) : (
-                  <p className="text-lg font-bold text-red-600">₹{period.udhari.toLocaleString('en-IN')}</p>
-                )}
-              </div>
-              <div className="bg-green-50 rounded-lg p-2">
-                <p className="text-xs text-green-600 font-medium">Collection</p>
-                {loading ? (
-                  <div className="h-5 w-14 bg-green-100 rounded animate-pulse mt-1" />
-                ) : (
-                  <p className="text-lg font-bold text-green-600">₹{period.collection.toLocaleString('en-IN')}</p>
-                )}
-              </div>
-              <div className="bg-blue-50 rounded-lg p-2">
-                <p className="text-xs text-blue-600 font-medium">New</p>
-                {loading ? (
-                  <div className="h-5 w-8 bg-blue-100 rounded animate-pulse mt-1" />
-                ) : (
-                  <p className="text-lg font-bold text-blue-600">{period.newCustomers}</p>
-                )}
-              </div>
-              <div className="bg-purple-50 rounded-lg p-2">
-                <p className="text-xs text-purple-600 font-medium">Repeat</p>
-                {loading ? (
-                  <div className="h-5 w-8 bg-purple-100 rounded animate-pulse mt-1" />
-                ) : (
-                  <p className="text-lg font-bold text-purple-600">{period.repeatCustomers}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* Two Column Layout - Graph & Recent Transactions */}
-      <div className="grid md:grid-cols-2 gap-6 animate-slide-up">
+      <div className="grid md:grid-cols-6 gap-6 animate-slide-up">
         {/* Analytics Chart */}
-        <div className="card-modern">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Analytics (7 Days)</h3>
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Weekly</span>
-          </div>
-
-          {/* Donut Chart */}
-          <div className="flex items-center justify-center mb-4">
-            <div className="relative w-40 h-40">
-              <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 100 100">
-                {/* Background circle */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#f3f4f6"
-                  strokeWidth="12"
-                />
-                {/* Collection (Green) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#22c55e"
-                  strokeWidth="12"
-                  strokeDasharray={`${chartData.collectionPercent * 2.51} 251`}
-                  strokeLinecap="round"
-                />
-                {/* Udhari (Red) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="#ef4444"
-                  strokeWidth="12"
-                  strokeDasharray={`${chartData.udhariPercent * 2.51} 251`}
-                  strokeDashoffset={`-${chartData.collectionPercent * 2.51}`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-2xl font-bold text-gray-900">
-                  ₹{((chartData.udhari + chartData.collection) / 1000).toFixed(1)}k
-                </p>
-                <p className="text-xs text-gray-500">Total</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="flex justify-center gap-6">
-            <div className="flex items-center">
-              <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-              <div>
-                <p className="text-xs text-gray-500">Udhari</p>
-                <p className="text-sm font-bold text-gray-900">₹{chartData.udhari.toLocaleString('en-IN')}</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-              <div>
-                <p className="text-xs text-gray-500">Collection</p>
-                <p className="text-sm font-bold text-gray-900">₹{chartData.collection.toLocaleString('en-IN')}</p>
-              </div>
-            </div>
-          </div>
+        <div className="col-span-4" >
+          <SimpleLineChart />
         </div>
 
-        {/* Recent Transactions */}
-        <div className="card-modern">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Recent Transactions</h3>
-            <Link to="/transactions" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
-              View All →
-            </Link>
-          </div>
+        <div className="card-modern col-span-2">
 
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl animate-pulse">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                    <div>
-                      <div className="h-4 w-24 bg-gray-200 rounded mb-1"></div>
-                      <div className="h-3 w-16 bg-gray-200 rounded"></div>
-                    </div>
-                  </div>
-                  <div className="h-5 w-16 bg-gray-200 rounded"></div>
-                </div>
-              ))}
-            </div>
-          ) : recentTransactions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p>No transactions yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {recentTransactions.map((txn, index) => (
-                <div 
-                  key={txn._id || index} 
-                  className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      txn.type === 'UDHARI' ? 'bg-red-100' : 'bg-green-100'
-                    }`}>
-                      {txn.type === 'UDHARI' ? (
-                        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">
-                        {txn.customerId?.name || 'Unknown'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(txn.createdAt).toLocaleDateString('en-IN', { 
-                          day: 'numeric', 
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`font-bold ${txn.type === 'UDHARI' ? 'text-red-600' : 'text-green-600'}`}>
-                    {txn.type === 'UDHARI' ? '+' : '-'}₹{txn.amount.toLocaleString('en-IN')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -71,6 +71,9 @@ export const api = {
   getCustomers: (dukanId) =>
     apiClient.get(`/customer/${dukanId}`),
 
+  getCustomerById: (customerId) =>
+    apiClient.get(`/customer/detail/${customerId}`),
+
   // Transaction endpoints
   addTransaction: (data) =>
     apiClient.post("/transaction", data),
