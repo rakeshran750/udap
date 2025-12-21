@@ -13,7 +13,7 @@ export default defineConfig({
         name: 'Udhari App - Customer Transaction Manager',
         short_name: 'Udhari App',
         description: 'Modern PWA for managing customer transactions and balances',
-        theme_color: '#f97316',
+        theme_color: '#fff7ed',
         background_color: '#fff7ed',
         display: 'standalone',
         orientation: 'portrait',
