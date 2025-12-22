@@ -61,7 +61,7 @@ function AppLayout({ dukanInfo, onLogout, sidebarExpanded, setSidebarExpanded, c
     }
   })();
   const avatarLetter = userData?.name?.charAt(0)?.toUpperCase() || "U";
-  const agentName = "John Doe";
+  const agentName = "Rakesh Ran";
 
   const handleSendChat = (event) => {
     event.preventDefault();
