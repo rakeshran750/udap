@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const content = {
@@ -8,7 +8,7 @@ const content = {
     heroSubtitle: "Track customer credit, record transactions, and manage your shop effortlessly",
     heroTagline: "Digital Udhari Management for Your Shop",
     learnMore: "Learn more",
-    getStarted: "Get Started",
+    getStarted: "Login / Signup",
     moreThan: "More than 500+",
     shopOwners: "shop owners",
     features: "FEATURES",
@@ -47,7 +47,7 @@ const content = {
     heroSubtitle: "ग्राहकों की उधारी, लेन-देन और दुकान का हिसाब आसानी से रखें",
     heroTagline: "आपकी दुकान के लिए डिजिटल उधारी प्रबंधन",
     learnMore: "और जानें",
-    getStarted: "शुरू करें",
+    getStarted: "लॉगिन / साइनअप",
     moreThan: "500+ से ज्यादा",
     shopOwners: "दुकानदार",
     features: "सुविधाएं",
@@ -108,12 +108,45 @@ export default function Landing() {
   const [lang, setLang] = useState("en");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = content[lang];
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { from: "bot", text: "Hi! How can we help with your shop?" },
+    { from: "user", text: "Tell me how to get started." },
+    { from: "bot", text: "Create your account and add your first shop to begin." },
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatContact, setChatContact] = useState("");
+  const chatPanelRef = useRef(null);
+  const chatBodyRef = useRef(null);
 
-  const handleGetStarted = () => {
-    navigate('/register');
+  const handleSendChat = (e) => {
+    e.preventDefault();
+    const message = chatInput.trim();
+    if (!message) return;
+    setChatMessages((prev) => [...prev, { from: "user", text: message }]);
+    setChatInput("");
+    setTimeout(() => {
+      setChatMessages((prev) => [...prev, { from: "bot", text: "Thanks! We'll reply shortly." }]);
+    }, 400);
   };
 
-  const handleLogin = () => {
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (chatPanelRef.current && !chatPanelRef.current.contains(event.target)) {
+        setChatOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+    }
+  }, [chatMessages, chatOpen]);
+
+  const handleGetStarted = () => {
     navigate('/login');
   };
 
@@ -181,14 +214,8 @@ export default function Landing() {
 
           <div className="flex items-center space-x-3">
             <button
-              onClick={handleLogin}
-              className="bg-white hover:bg-gray-50 text-orange-600 border-2 border-orange-500 px-5 sm:px-6 py-2 sm:py-2.5 rounded-full font-medium transition-all hover:shadow-lg text-sm sm:text-base"
-            >
-              Login
-            </button>
-            <button
               onClick={handleGetStarted}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-full font-medium transition-all hover:shadow-lg text-sm sm:text-base"
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-full font-semibold transition-all hover:shadow-lg text-sm sm:text-base"
             >
               {t.getStarted}
             </button>
@@ -560,18 +587,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <div className="bg-gray-50 py-12 md:py-16">
-        <div className="max-w-4xl mx-auto text-center px-4 md:px-6">
-          <button
-            onClick={handleGetStarted}
-            className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-lg md:text-xl font-bold px-8 md:px-12 py-4 md:py-5 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-          >
-            {t.getStarted} →
-          </button>
-          <p className="mt-4 text-gray-500">{t.freeToUse}</p>
-        </div>
-      </div>
+
 
       {/* Footer */}
       <footer id="contact" className="bg-gray-900 text-white">
@@ -652,6 +668,103 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Landing chat toggle and panel */}
+      {!chatOpen?
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end space-y-3">
+        <button
+          onClick={() => { setChatOpen((v) => !v); }}
+          className="flex items-center space-x-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 shadow-lg hover:shadow-xl transition-all active:scale-95"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h8M8 14h5m-5 0a4 4 0 110-8h8a4 4 0 010 8h-1l-4 4v-4" />
+          </svg>
+        
+        </button>
+      </div>:""
+      }
+
+      {chatOpen && (
+        <div
+          ref={chatPanelRef}
+          className="fixed top-20 right-6 bottom-6 bg-white border border-orange-100 rounded-3xl shadow-2xl overflow-hidden animate-slide-in-right z-40 w-96 max-w-[90vw]"
+        >
+          <div className="px-3 py-3 bg-gradient-to-r from-orange-500 to-orange-400 text-white flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-sm">Live Chat</p>
+              <p className="text-xs text-orange-50">Ask anything about the app</p>
+            </div>
+            <button
+              onClick={() => setChatOpen(false)}
+              className="p-2 rounded-full hover:bg-white/20 transition-colors"
+              aria-label="Close chat panel"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          <div className="h-full flex flex-col bg-gradient-to-b from-white via-white to-orange-50">
+            <div ref={chatBodyRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"} items-end space-x-2`}>
+                  {msg.from === "bot" && (
+                    <div className="w-8 h-8 rounded-full bg-orange-100 overflow-hidden flex items-center justify-center text-xs font-bold text-orange-700">
+                      JD
+                    </div>
+                  )}
+                  <div
+                    className={`px-3 py-2 rounded-2xl text-sm leading-snug shadow-sm max-w-[80%] ${
+                      msg.from === "user"
+                        ? "bg-orange-500 text-white rounded-br-none"
+                        : "bg-gray-100 text-gray-800 rounded-bl-none"
+                    }`}
+                  >
+                    {msg.text}
+                    <div className="mt-1 text-[10px] uppercase tracking-wide opacity-70">
+                      {msg.from === "user" ? "you" : "Support"}
+                    </div>
+                  </div>
+                  {msg.from === "user" && (
+                    <div className="w-6 h-6 flex items-center justify-center text-orange-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+            ))}
+          </div>
+            <form onSubmit={handleSendChat} className="border-t border-orange-100 bg-white px-3 py-3 space-y-3">
+              <input
+                type="text"
+                value={chatContact}
+                onChange={(e) => setChatContact(e.target.value)}
+                placeholder="Your email or phone (optional)"
+                className="w-full bg-gray-50 rounded-2xl border border-orange-100 px-3 py-2 shadow-inner text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              <div className="flex items-center bg-gray-50 rounded-2xl border border-orange-100 px-3 py-2 shadow-inner space-x-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Ask us anything..."
+                  className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-400"
+                />
+                <button
+                  type="submit"
+                  className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+                  aria-label="Send message"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12l14-7-7 14-2-5-5-2z" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

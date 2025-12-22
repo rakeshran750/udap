@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/api";
 import StatSummaryCard from "../components/StatSummaryCard";
+import { showErrorToast, showSuccessToast } from "../utils/toast";
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -127,12 +128,14 @@ export default function Customers() {
         address: "",
       });
       setShowCreateForm(false);
+      showSuccessToast("Customer created");
       
       // Refresh customers
       await fetchData();
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to create customer. Please try again.";
       setFormError(errorMessage);
+      showErrorToast(errorMessage);
       console.error("Create customer error:", err);
     } finally {
       setSubmitting(false);

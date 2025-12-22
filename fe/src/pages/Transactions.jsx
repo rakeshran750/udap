@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/api";
 import StatSummaryCard from "../components/StatSummaryCard";
+import { showErrorToast, showSuccessToast } from "../utils/toast";
 
 
 export default function Transactions() {
@@ -136,12 +137,14 @@ export default function Transactions() {
         type: "UDHARI",
       });
       setShowCreateForm(false);
+      showSuccessToast("Transaction created");
       
       // Refresh transactions
       await fetchData();
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to create transaction. Please try again.";
       setFormError(errorMessage);
+      showErrorToast(errorMessage);
       console.error("Create transaction error:", err);
     } finally {
       setSubmitting(false);
@@ -243,23 +246,30 @@ export default function Transactions() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Customer <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    value={formData.customerId}
-                    onChange={(e) => {
-                      setFormData({ ...formData, customerId: e.target.value });
-                      setFormError("");
-                    }}
-                    className="input-modern"
-                    required
-                    disabled={submitting}
-                  >
-                    <option value="">Select a customer</option>
-                    {customers.map((customer) => (
-                      <option key={customer._id} value={customer._id}>
-                        {customer.name} {customer.phone ? `(${customer.phone})` : ""}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={formData.customerId}
+                      onChange={(e) => {
+                        setFormData({ ...formData, customerId: e.target.value });
+                        setFormError("");
+                      }}
+                      className="w-full appearance-none bg-white border border-orange-200 rounded-xl px-4 py-3 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent shadow-inner"
+                      required
+                      disabled={submitting}
+                    >
+                      <option value="">Select a customer</option>
+                      {customers.map((customer) => (
+                        <option key={customer._id} value={customer._id}>
+                          {customer.name} {customer.phone ? `(${customer.phone})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                   {customers.length === 0 && (
                     <p className="mt-2 text-xs text-gray-500">
                       No customers found. <a href="/customers" className="text-orange-600 hover:underline">Create one</a>

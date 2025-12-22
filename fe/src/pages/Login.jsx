@@ -91,8 +91,9 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center px-4 py-8 sm:py-12 animate-fade-in">
-      <div className="max-w-md w-full">
+    <div className="fixed inset-0 z-40 bg-white/90 backdrop-blur-sm overflow-y-auto flex items-center justify-center px-4 py-8 sm:py-12 animate-fade-in">
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-orange-50 pointer-events-none" />
+      <div className="relative max-w-md w-full">
         <div className="card-modern animate-scale-in">
           {/* Header */}
           <div className="text-center mb-6 sm:mb-8">
