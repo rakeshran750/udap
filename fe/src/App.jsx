@@ -34,6 +34,14 @@ function AppLayout({ dukanInfo, onLogout, sidebarExpanded, setSidebarExpanded, c
   const toggleTop = 16;
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const accountMenuRef = useRef(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { from: "bot", text: "Hello, I'm John. How may I help you?" },
+    { from: "user", text: "Hi John, how are you?" },
+    { from: "bot", text: "I am good. How may I help you today?" },
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const chatBodyRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -53,6 +61,25 @@ function AppLayout({ dukanInfo, onLogout, sidebarExpanded, setSidebarExpanded, c
     }
   })();
   const avatarLetter = userData?.name?.charAt(0)?.toUpperCase() || "U";
+  const agentName = "John Doe";
+
+  const handleSendChat = (event) => {
+    event.preventDefault();
+    const message = chatInput.trim();
+    if (!message) return;
+    setChatMessages((prev) => [...prev, { from: "user", text: message }]);
+    setChatInput("");
+    // Simple acknowledgement without backend
+    setTimeout(() => {
+      setChatMessages((prev) => [...prev, { from: "bot", text: "Thanks! We will get back to you shortly." }]);
+    }, 400);
+  };
+
+  useEffect(() => {
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+    }
+  }, [chatMessages, isChatOpen]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
@@ -171,6 +198,108 @@ function AppLayout({ dukanInfo, onLogout, sidebarExpanded, setSidebarExpanded, c
           {children}
         </div>
       </main>
+
+      {/* Floating chat button */}
+      <button
+        onClick={() => setIsChatOpen((v) => !v)}
+        className="fixed bottom-6 right-6 z-50 flex items-center space-x-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 shadow-lg hover:shadow-xl transition-all active:scale-95"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h8M8 14h5m-5 0a4 4 0 110-8h8a4 4 0 010 8h-1l-4 4v-4" />
+        </svg>
+        <span className="font-semibold text-sm hidden sm:inline">{isChatOpen ? "Close chat" : "Chat with us"}</span>
+      </button>
+
+      {/* Chat panel */}
+      {isChatOpen && (
+        <div className="fixed bottom-24 right-6 z-50 w-80 max-w-[90vw] bg-white shadow-2xl rounded-3xl border border-orange-100 overflow-hidden animate-slide-in-right">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-400 text-white">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-white/20 border border-white/40 overflow-hidden flex items-center justify-center text-sm font-bold">
+                {agentName.split(" ").map((n) => n[0]).join("")}
+              </div>
+              <div>
+                <p className="font-semibold text-sm">{agentName}</p>
+                <p className="text-xs text-orange-50 flex items-center space-x-1">
+                  <span className="h-2 w-2 bg-green-300 rounded-full inline-block" />
+                  <span>Online</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="p-1 rounded-full hover:bg-white/20 transition-colors"
+                aria-label="Close chat"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div ref={chatBodyRef} className="max-h-80 overflow-y-auto px-4 py-3 space-y-3 bg-gradient-to-b from-white via-white to-orange-50">
+            <div className="text-center text-[11px] uppercase tracking-wide text-gray-400">chat started</div>
+            {chatMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"} items-end space-x-2`}
+              >
+                {msg.from === "bot" && (
+                  <div className="w-8 h-8 rounded-full bg-orange-100 overflow-hidden flex items-center justify-center text-xs font-bold text-orange-700">
+                    JD
+                  </div>
+                )}
+                <div
+                  className={`px-3 py-2 rounded-2xl text-sm leading-snug shadow-sm max-w-[80%] ${
+                    msg.from === "user"
+                      ? "bg-orange-500 text-white rounded-br-none"
+                      : "bg-gray-100 text-gray-800 rounded-bl-none"
+                  }`}
+                >
+                  {msg.text}
+                  <div className="mt-1 text-[10px] uppercase tracking-wide opacity-70">
+                    {msg.from === "user" ? "you" : agentName}
+                  </div>
+                </div>
+                {msg.from === "user" && (
+                  <div className="w-6 h-6 flex items-center justify-center text-orange-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="px-4 py-2 text-center text-xs text-gray-500 border-t border-orange-100">
+            powered by <span className="font-semibold text-orange-500">LiveAgent</span>
+          </div>
+
+          <form onSubmit={handleSendChat} className="border-t border-orange-100 bg-white px-3 py-3">
+            <div className="flex items-center bg-gray-50 rounded-2xl border border-orange-100 px-3 py-2 shadow-inner space-x-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Order number 187 | How can we help?"
+                className="flex-1 bg-transparent outline-none text-sm placeholder:text-gray-400"
+              />
+              <button
+                type="submit"
+                className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+                aria-label="Send message"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12l14-7-7 14-2-5-5-2z" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

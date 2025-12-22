@@ -18,14 +18,14 @@
   /* Default zoom for desktop/tablet */
   @media (min-width: 768px) {
     html {
-      zoom: 0.75;
+      zoom: 1.03125;
     }
   }
 
   /* Slight zoom-in for mobile */
   @media (max-width: 767px) {
     html {
-      zoom: 0.95;
+      zoom: 1.30625;
     }
   }
   
